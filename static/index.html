@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parlant vs Traditional LLM - Life Insurance Agent Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Parlant Guidelines vs Traditional Prompt</h1>
+            <p class="subtitle">Life Insurance Agent Comparison Demo</p>
+        </header>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="query-input">Enter your query:</label>
+                <textarea 
+                    id="query-input" 
+                    placeholder="e.g., I want to replace my existing $500k term policy with a whole life policy. What should I do?"
+                    rows="3"
+                ></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button id="compare-btn" class="btn btn-primary">Compare Responses</button>
+                <button id="demo-btn" class="btn btn-secondary">Load Demo Queries</button>
+                <button id="clear-btn" class="btn btn-outline">Clear</button>
+            </div>
+        </div>
+
+        <div id="demo-queries" class="demo-queries hidden">
+            <h3>Demo Queries:</h3>
+            <div class="query-list"></div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Processing comparison...</p>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+
+        <div id="results" class="results hidden">
+            <div class="comparison-header">
+                <h2>Comparison Results</h2>
+            </div>
+            
+            <div class="query-display">
+                <h3>📝 Query:</h3>
+                <p id="query-display-text"></p>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="response-card traditional">
+                    <div class="card-header">
+                        <h3>🤖 Traditional LLM</h3>
+                    </div>
+                    <div class="card-content" id="traditional-response">
+                        <!-- Traditional response will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="response-card parlant">
+                    <div class="card-header">
+                        <h3>🎯 Parlant Agent</h3>
+                    </div>
+                    <div class="card-content" id="parlant-response">
+                        <!-- Parlant response will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="reasoning-section">
+                <h3>🧠 Reasoning & Guidelines</h3>
+                <div class="reasoning-content" id="reasoning-display">
+                    <!-- Reasoning will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
