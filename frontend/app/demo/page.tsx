@@ -41,9 +41,8 @@ export default function DemoPage() {
         }
       }
     } catch (err) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const apiPort = apiUrl.split(':').pop() || '5000';
-      setError(`⚠️ Cannot connect to API server. Make sure api_server.py is running on port ${apiPort}.`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'API server';
+      setError(`⚠️ Cannot connect to API server at ${apiUrl}. Make sure api_server.py is running and NEXT_PUBLIC_API_URL is configured correctly.`);
     }
   }
 

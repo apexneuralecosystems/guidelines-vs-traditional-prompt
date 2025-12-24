@@ -298,12 +298,16 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
     
-    api_url = f"http://localhost:{API_PORT}"
+    # Build API URL from configured host and port
+    if API_HOST == "0.0.0.0":
+        api_url = f"http://localhost:{API_PORT}"
+    else:
+        api_url = f"http://{API_HOST}:{API_PORT}"
     
     print("🚀 Starting FastAPI server...")
     print(f"📡 API will be available at {api_url}/api")
     print(f"📚 API docs available at {api_url}/docs")
-    print(f"🌐 Next.js frontend should run on http://localhost:{FRONTEND_PORT}")
+    print(f"🌐 Next.js frontend should run on {FRONTEND_URL}")
     print("⚠️  Make sure parlant_agent_server.py is running first!")
     
     # Use import string format for reload to work properly

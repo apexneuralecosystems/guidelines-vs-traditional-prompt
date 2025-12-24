@@ -8,7 +8,10 @@ import os
 
 async def create_client(base_url: str = "") -> AsyncParlantClient:
     """Create a Parlant client connection."""
-    resolved_base_url = base_url or os.getenv("PARLANT_BASE_URL", "http://127.0.0.1:8800")
+    # Get from provided base_url or environment variable (required)
+    resolved_base_url = base_url or os.getenv("PARLANT_BASE_URL")
+    if not resolved_base_url:
+        raise ValueError("PARLANT_BASE_URL environment variable is required. Please set it in your .env file.")
     return AsyncParlantClient(base_url=resolved_base_url)
 
 
@@ -23,7 +26,7 @@ async def create_session(client: AsyncParlantClient, agent_id: str, retries: int
             last_exc = exc
             await asyncio.sleep(delay)
             delay = min(3.0, delay * 1.5)
-    base_url = getattr(client, "_base_url", None) or os.getenv("PARLANT_BASE_URL", "http://127.0.0.1:8800")
+    base_url = getattr(client, "_base_url", None) or os.getenv("PARLANT_BASE_URL") or "PARLANT_BASE_URL not configured"
     raise last_exc or RuntimeError(f"Failed to create session after {retries} attempts (server at {base_url}?).")
 
 

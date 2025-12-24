@@ -25,7 +25,9 @@ else:
     CORS_ORIGINS = [FRONTEND_URL]
 
 # Parlant Configuration
-PARLANT_BASE_URL = os.getenv('PARLANT_BASE_URL', 'http://127.0.0.1:8800')
+PARLANT_BASE_URL = os.getenv('PARLANT_BASE_URL')
+if not PARLANT_BASE_URL:
+    raise ValueError("PARLANT_BASE_URL environment variable is required. Please set it in your .env file.")
 
 # OpenRouter Configuration
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
