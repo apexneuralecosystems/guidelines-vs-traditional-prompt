@@ -1,5 +1,6 @@
 import asyncio
 import os
+import pathlib
 import parlant.sdk as p
 from dotenv import load_dotenv
 
@@ -221,8 +222,11 @@ async def main() -> None:
         )
 
         # Save agent ID for demo client
-        os.makedirs("parlant-data", exist_ok=True)
-        with open(os.path.join("parlant-data", "agent_id.txt"), "w", encoding="utf-8") as f:
+        # parlant-data is now in backend/ directory
+        parlant_data_dir = pathlib.Path(__file__).parent / "parlant-data"
+        os.makedirs(parlant_data_dir, exist_ok=True)
+        agent_id_file = parlant_data_dir / "agent_id.txt"
+        with open(agent_id_file, "w", encoding="utf-8") as f:
             f.write(getattr(agent, "id", ""))
 
 

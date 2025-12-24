@@ -3,7 +3,21 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# OpenRouter API Configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4")  # Default to GPT-4 via OpenRouter
+
+# Initialize OpenRouter client (uses OpenAI SDK with OpenRouter base URL)
+openai_client = OpenAI(
+    api_key=OPENROUTER_API_KEY,
+    base_url=OPENROUTER_BASE_URL,
+    default_headers={
+        "HTTP-Referer": os.getenv("OPENROUTER_HTTP_REFERER", "https://github.com/yourusername/yourproject"),
+        "X-Title": os.getenv("OPENROUTER_X_TITLE", "Life Insurance Comparison Demo"),
+    }
+)
 
 
 TRADITIONAL_HUGE_PROMPT = """
@@ -225,10 +239,13 @@ Remember: Your goal is to educate customers and help them make informed decision
 
 
 async def call_traditional_llm(query: str, prompt: str) -> str:
-    """Call traditional LLM with the given query and prompt."""
+    """Call traditional LLM with the given query and prompt using OpenRouter."""
     try:
+        if not OPENROUTER_API_KEY:
+            return "Error: OPENROUTER_API_KEY not found. Please set it in your .env file."
+        
         response = openai_client.chat.completions.create(
-            model="gpt-4",
+            model=OPENROUTER_MODEL,
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": query}
@@ -238,4 +255,4 @@ async def call_traditional_llm(query: str, prompt: str) -> str:
         )
         return response.choices[0].message.content
     except Exception as e:
-        return f"Error calling traditional LLM: {str(e)}"
+        return f"Error calling traditional LLM via OpenRouter: {str(e)}"

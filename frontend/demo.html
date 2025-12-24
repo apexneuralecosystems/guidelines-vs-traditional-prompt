@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parlant vs Traditional LLM - Life Insurance Agent Demo</title>
+    <title>Live Comparison Demo - Parlant vs Traditional LLM</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🤖 Parlant Guidelines vs Traditional Prompt</h1>
-            <p class="subtitle">Life Insurance Agent Comparison Demo</p>
+        <header class="demo-header">
+            <a href="index.html" class="back-link">← Back to Home</a>
+            <h1>Live Comparison Demo</h1>
+            <p class="subtitle">Enter a query below to see how both approaches handle the same question</p>
         </header>
 
         <div class="input-section">
@@ -56,6 +57,7 @@
                 <div class="response-card traditional">
                     <div class="card-header">
                         <h3>🤖 Traditional LLM</h3>
+                        <span class="card-badge">Monolithic Prompt</span>
                     </div>
                     <div class="card-content" id="traditional-response">
                         <!-- Traditional response will be inserted here -->
@@ -65,6 +67,7 @@
                 <div class="response-card parlant">
                     <div class="card-header">
                         <h3>🎯 Parlant Agent</h3>
+                        <span class="card-badge success">Structured Guidelines</span>
                     </div>
                     <div class="card-content" id="parlant-response">
                         <!-- Parlant response will be inserted here -->

@@ -13,17 +13,14 @@ from parlant_client_utils import (
 
 async def main() -> None:
     """Compare Traditional LLM vs Parlant agent responses."""
-    demo_queries = [
-        "I want to replace my existing $500k term policy with a whole life policy. What should I do?",
-        "I'm 35 years old, make $80,000 a year, and have 2 kids. How much life insurance coverage should I get?",
-        "I have diabetes. Will this affect my life insurance rates?",
-        "I'm really confused about insurance. My car got totaled last week and I need to file a claim, but I also want to know about life insurance for my business, and my wife is asking about health insurance options. Can you help me with all of this?",
-        "I'm thinking about getting life insurance but I'm not sure if I should. I'm 30 years old, healthy, and make $60,000 a year. I don't really want to spend a lot on premiums, but I also want to make sure my family is protected. What do you think I should do?",
-    ]
+    from config import DEMO_QUERIES
+    demo_queries = DEMO_QUERIES
 
     import os
-    agent_id_path = os.path.join("parlant-data", "agent_id.txt")
-    if not os.path.exists(agent_id_path):
+    import pathlib
+    # parlant-data is now in backend/ directory
+    agent_id_path = pathlib.Path(__file__).parent / "parlant-data" / "agent_id.txt"
+    if not agent_id_path.exists():
         raise RuntimeError("agent_id.txt not found. Please start parlant_agent_server.py first.")
     with open(agent_id_path, "r", encoding="utf-8") as f:
         agent_id = f.read().strip()

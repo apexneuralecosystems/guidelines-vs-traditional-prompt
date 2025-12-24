@@ -10,8 +10,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -82,4 +80,12 @@ dmypy.json
 
 # uv
 .uv/
+
+# Node.js (frontend)
+# Note: node_modules is already in frontend/.gitignore
+# package-lock.json should be COMMITTED for production (ensures reproducible builds)
+
+# Next.js build outputs (handled by frontend/.gitignore)
+# .next/
+# out/
 
