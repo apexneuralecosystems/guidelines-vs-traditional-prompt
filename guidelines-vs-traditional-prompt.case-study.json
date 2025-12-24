@@ -12,6 +12,10 @@
             "Conversational AI",
             "Agent Design",
             "Python",
+            "FastAPI",
+            "Next.js",
+            "React",
+            "OpenRouter",
             "AI Architecture"
         ],
         "type": "Technical Deep Dive"
@@ -25,7 +29,7 @@
         "name": "Ramya",
         "role": "Senior Engineer - Integrations and applied AI",
         "company": "Apex Neural",
-        "bio": "Ramya is an AI specialist focused on building structured conversational agents. In this project, she demonstrates how to replace fragile, monolithic life insurance prompts with Parlant's modular guidelines, ensuring critical warnings and policy details are handled with production-grade reliability.",
+        "bio": "Ramya is an AI specialist focused on building structured conversational agents. In this project, she demonstrates how to replace fragile, monolithic life insurance prompts with Parlant's modular guidelines, ensuring critical warnings and policy details are handled with production-grade reliability. The implementation uses FastAPI for the backend, Next.js for the frontend, and OpenRouter for flexible model access.",
         "image": "https://ui-avatars.com/api/?name=Dev+Team&background=6366f1&color=fff&size=200",
         "stats": {
             "projects": "12+",
@@ -74,18 +78,26 @@
                 },
                 {
                     "title": "Side-by-Side Comparison Interface",
-                    "description": "Interactive web frontend and CLI demo allow real-time comparison of both approaches on identical queries, clearly demonstrating the advantages."
+                    "description": "Modern Next.js React frontend and CLI demo allow real-time comparison of both approaches on identical queries, clearly demonstrating the advantages. FastAPI backend provides standardized API responses with full observability."
+                },
+                {
+                    "title": "Production-Ready API Architecture",
+                    "description": "FastAPI backend with standardized response format, configurable CORS, environment-based configuration, and comprehensive error handling ensures production-grade reliability."
+                },
+                {
+                    "title": "Flexible Model Access via OpenRouter",
+                    "description": "OpenRouter integration allows switching between multiple AI models (GPT-4, Claude, Gemini) without code changes, providing cost optimization and performance flexibility."
                 }
             ]
         },
         "architecture": {
-            "description": "The system implements two parallel architectures for direct comparison. The Traditional LLM uses a single monolithic 223-line prompt sent to OpenAI's GPT-4, while the Parlant Agent uses a structured server with conditional guidelines and tool orchestration. Both handle identical queries to demonstrate the stark differences in reliability and maintainability.",
+            "description": "The system implements two parallel architectures for direct comparison. The Traditional LLM uses a single monolithic 223-line prompt sent via OpenRouter API (supporting multiple models), while the Parlant Agent uses a structured server with conditional guidelines and tool orchestration. Both handle identical queries through a FastAPI backend and Next.js frontend to demonstrate the stark differences in reliability and maintainability.",
             "diagramUrl": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=600&fit=crop",
             "diagramCaption": "Figure 1: Traditional Monolithic vs Parlant Modular Architecture",
             "components": [
                 {
                     "title": "Traditional Pipeline",
-                    "desc": "Single massive prompt → OpenAI GPT-4 → Unstructured response"
+                    "desc": "Single massive prompt → OpenRouter API (GPT-4 or other models) → Unstructured response"
                 },
                 {
                     "title": "Parlant Agent Server",
@@ -100,20 +112,20 @@
                     "desc": "8 specialized tools for calculations, data retrieval, and structured responses"
                 },
                 {
-                    "title": "Flask API Server",
-                    "desc": "Serves web frontend and proxies requests to both traditional and Parlant approaches"
+                    "title": "FastAPI Backend Server",
+                    "desc": "RESTful API server with standardized response format, CORS configuration, and endpoints for comparison, health checks, and demo queries"
                 },
                 {
-                    "title": "Interactive Frontend",
-                    "desc": "Side-by-side comparison UI showing responses, reasoning traces, and performance metrics"
+                    "title": "Next.js React Frontend",
+                    "desc": "Modern server-side rendered frontend with TypeScript, providing interactive side-by-side comparison UI showing responses, reasoning traces, and performance metrics"
                 }
             ]
         },
         "implementation": {
-            "description": "The implementation showcases the dramatic difference between approaches. Traditional LLM sends a 4000+ word prompt every time, relying on the model to remember and apply all rules. Parlant's guideline system triggers specific rules only when conditions match, guaranteeing execution with associated tools.",
+            "description": "The implementation showcases the dramatic difference between approaches. Traditional LLM sends a 4000+ word prompt every time via OpenRouter API, relying on the model to remember and apply all rules. Parlant's guideline system triggers specific rules only when conditions match, guaranteeing execution with associated tools. The FastAPI backend provides standardized JSON responses with status codes, messages, and structured data.",
             "codeSnippet": {
                 "language": "python",
-                "code": "# Traditional: Massive monolithic prompt (excerpt)\nTRADITIONAL_PROMPT = \"\"\"\nYou are a professional life insurance agent...\n[223 lines of instructions]\n16. POLICY REPLACEMENT:\n   - CRITICAL WARNING: DO NOT cancel old policy...\n   - May conflict with Section 18...\n\"\"\"\n\n# Parlant: Focused conditional guideline\nawait agent.create_guideline(\n    condition=\"The customer wants to replace, switch, or cancel their existing policy\",\n    action=\"\"\"CRITICAL: Warn them DO NOT cancel their old policy\n    until new policy is approved and in force.\"\"\",\n    tools=[get_agent_contact],  # Guaranteed to be called\n)"
+                "code": "# Traditional: Massive monolithic prompt via OpenRouter (excerpt)\nfrom openai import OpenAI\n\nopenai_client = OpenAI(\n    api_key=OPENROUTER_API_KEY,\n    base_url=\"https://openrouter.ai/api/v1\"\n)\n\nTRADITIONAL_PROMPT = \"\"\"\nYou are a professional life insurance agent...\n[223 lines of instructions]\n16. POLICY REPLACEMENT:\n   - CRITICAL WARNING: DO NOT cancel old policy...\n   - May conflict with Section 18...\n\"\"\"\n\n# Parlant: Focused conditional guideline\nawait agent.create_guideline(\n    condition=\"The customer wants to replace, switch, or cancel their existing policy\",\n    action=\"\"\"CRITICAL: Warn them DO NOT cancel their old policy\n    until new policy is approved and in force.\"\"\",\n    tools=[get_agent_contact],  # Guaranteed to be called\n)\n\n# FastAPI: Standardized response format\nreturn StandardResponse(\n    status_code=200,\n    status=True,\n    message=\"Comparison completed successfully\",\n    path=\"/api/compare\",\n    data=result.model_dump()\n)"
             },
             "proTip": {
                 "title": "Why Conditional Guidelines Win",
@@ -121,7 +133,7 @@
             }
         },
         "workflow": {
-            "description": "1. User Query: Identical question sent to both systems\n2. Traditional Path: Entire 223-line prompt + query sent to GPT-4, model tries to remember all rules\n3. Parlant Path: Guideline engine evaluates conditions, triggers matching guidelines, orchestrates tool calls\n4. Response Generation: Traditional returns unstructured text; Parlant returns structured response with reasoning trace\n5. Frontend Display: Side-by-side comparison showing response quality, reasoning, and performance metrics",
+            "description": "1. User Query: Identical question sent via Next.js frontend to FastAPI backend\n2. Traditional Path: Entire 223-line prompt + query sent via OpenRouter API to selected model (GPT-4, Claude, etc.), model tries to remember all rules\n3. Parlant Path: Guideline engine evaluates conditions, triggers matching guidelines, orchestrates tool calls\n4. Response Generation: Traditional returns unstructured text; Parlant returns structured response with reasoning trace. Both wrapped in standardized JSON format with status codes\n5. Frontend Display: Next.js React components render side-by-side comparison showing response quality, reasoning traces, and performance metrics",
             "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop",
             "caption": "Figure 2: Dual Agent Response Workflow Comparison"
         },
@@ -138,7 +150,7 @@
                 },
                 {
                     "title": "Interactive Comparison Demo",
-                    "description": "Both web and CLI interfaces demonstrate 5 realistic scenarios: policy replacement warnings, coverage calculations, health impact assessments, boundary maintenance, and conflicting rule resolution."
+                    "description": "Next.js web interface and CLI interfaces demonstrate 5 realistic scenarios: policy replacement warnings, coverage calculations, health impact assessments, boundary maintenance, and conflicting rule resolution. FastAPI provides RESTful endpoints with standardized response format."
                 },
                 {
                     "title": "Full Reasoning Transparency",
