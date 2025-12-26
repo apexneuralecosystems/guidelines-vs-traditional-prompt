@@ -4,6 +4,13 @@
 
 ### Must Commit (Essential for Production)
 
+**Parlant:**
+- ✅ All `.py` files (parlant_agent_server.py, parlant_client_utils.py)
+- ✅ `pyproject.toml` (Parlant dependencies)
+- ✅ `requirements.txt` (alternative dependency file)
+- ✅ `env.example` (Parlant environment template)
+- ✅ `README.md` (Parlant documentation)
+
 **Backend:**
 - ✅ All `.py` files (source code)
 - ✅ `pyproject.toml` (dependencies)
@@ -40,7 +47,8 @@
 - ❌ `.venv/`
 - ❌ `node_modules/`
 - ❌ `.next/`
-- ❌ `parlant-data/`
+- ❌ `parlant/parlant-data/`
+- ❌ `backend/parlant-data/` (old location, if exists)
 - ❌ `*.log` files
 
 ## Quick Verification Command

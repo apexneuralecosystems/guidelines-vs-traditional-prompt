@@ -9,10 +9,16 @@ This project demonstrates the advantages of **Parlant's structured approach** ov
 
 ## Setup
 
+**Parlant Agent Server:**
+```bash
+cd parlant
+uv sync  # Install Parlant dependencies
+```
+
 **Backend:**
 ```bash
 cd backend
-uv sync  # Install Python dependencies
+uv sync  # Install FastAPI backend dependencies
 ```
 
 **Frontend:**
@@ -22,6 +28,7 @@ npm install  # Install Node.js dependencies
 ```
 
 **Note:** 
+- Parlant server commands should be run from the `parlant/` directory
 - Backend commands should be run from the `backend/` directory
 - Frontend commands should be run from the `frontend/` directory
 
@@ -64,7 +71,7 @@ cp env.example .env.local
 
 **Terminal 1 - Start the Parlant agent server:**
 ```bash
-cd backend
+cd parlant
 uv run parlant_agent_server.py
 ```
 
@@ -88,7 +95,7 @@ Navigate to `http://localhost:3300` to access the web interface.
 
 **Terminal 1 - Start the server:**
 ```bash
-cd backend
+cd parlant
 uv run parlant_agent_server.py
 ```
 
@@ -111,21 +118,23 @@ The demo tests 5 realistic scenarios:
 
 ```
 guidelines-vs-traditional-prompt/
-├── backend/                      # Backend Python code
+├── parlant/                      # Parlant agent server (separate service)
 │   ├── parlant_agent_server.py  # Parlant agent with tools & guidelines
+│   ├── parlant_client_utils.py  # Parlant API client utilities
+│   ├── parlant-data/            # Parlant session data (generated)
+│   ├── pyproject.toml           # Parlant dependencies (uv)
+│   ├── env.example              # Parlant environment variables
+│   └── README.md                # Parlant server documentation
+├── backend/                      # FastAPI backend server
 │   ├── api_server.py            # FastAPI server for frontend
 │   ├── demo_comparison.py        # Main comparison demo runner
 │   ├── traditional_llm_prompt.py # Monolithic prompt approach
-│   ├── parlant_client_utils.py  # Parlant API client utilities
 │   ├── rich_table_formatter.py  # Beautiful console table rendering
-│   ├── pyproject.toml           # Project dependencies (uv)
+│   ├── config.py                # Configuration module
+│   ├── pyproject.toml           # Backend dependencies (uv)
 │   ├── uv.lock                  # Dependency lock file (uv)
-│   ├── .python-version          # Python version specification
-│   ├── .venv/                   # Virtual environment
 │   ├── .env                     # Environment variables (API keys)
-│   ├── .env.example             # Example environment file
-│   ├── parlant-data/            # Parlant session data (generated)
-│   └── __pycache__/             # Python bytecode cache
+│   └── env.example              # Example environment file
 ├── frontend/                     # Next.js React frontend
 │   ├── app/                     # Next.js app directory
 │   │   ├── layout.tsx          # Root layout
@@ -134,6 +143,7 @@ guidelines-vs-traditional-prompt/
 │   │   └── globals.css         # Global styles
 │   ├── package.json            # Node.js dependencies
 │   └── next.config.js          # Next.js configuration
+├── ecosystem.config.cjs         # PM2 configuration for production
 └── README.md                    # This file
 ```
 

@@ -1,12 +1,26 @@
 """FastAPI server to expose backend functionality for frontend."""
 import asyncio
 import pathlib
+import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-from config import API_PORT, API_HOST, FRONTEND_PORT, DEMO_QUERIES, CORS_ORIGINS
+from config import API_PORT, API_HOST, FRONTEND_PORT, FRONTEND_URL, DEMO_QUERIES, CORS_ORIGINS
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 from traditional_llm_prompt import call_traditional_llm, TRADITIONAL_HUGE_PROMPT
+import sys
+import pathlib
+
+# Add parlant directory to path to import parlant_client_utils
+parlant_dir = pathlib.Path(__file__).parent.parent / "parlant"
+sys.path.insert(0, str(parlant_dir))
+
 from parlant_client_utils import (
     create_client as create_parlant_client,
     create_session as create_parlant_session,
@@ -23,12 +37,19 @@ from fastapi.exceptions import RequestValidationError
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
+    import logging
+    
+    # Log validation error for debugging
+    logging.warning(f"Validation error: {str(exc)}")
+    print(f"⚠️ Validation error: {str(exc)}")
+    
+    # Return friendly message to user
     return JSONResponse(
         status_code=422,
         content={
             "status_code": 422,
             "status": False,
-            "message": f"Validation error: {str(exc)}",
+            "message": "Invalid request. Please check your input and try again.",
             "path": str(request.url.path),
             "data": {}
         }
@@ -37,30 +58,77 @@ async def validation_exception_handler(request, exc):
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     import traceback
-    error_msg = str(exc)
-    print(f"Unhandled exception in {request.url.path}: {error_msg}")
+    import logging
+    
+    # Log detailed error for debugging
+    error_details = {
+        "error_type": type(exc).__name__,
+        "error_message": str(exc),
+        "path": str(request.url.path),
+        "traceback": traceback.format_exc()
+    }
+    logging.error(f"Unhandled exception: {error_details}")
+    print(f"❌ Unhandled exception: {error_details}")
     print(traceback.format_exc())
+    
+    # Return friendly message to user
     return JSONResponse(
         status_code=500,
         content={
             "status_code": 500,
             "status": False,
-            "message": f"Internal server error: {error_msg}",
+            "message": "An unexpected error occurred. Please try again or contact support if the issue persists.",
             "path": str(request.url.path),
             "data": {}
         }
     )
 
 # Enable CORS for Next.js frontend
-# CORS origins are configured via CORS_ORIGINS environment variable
-# Defaults to FRONTEND_URL for development, or specify comma-separated list for production
+# CORS origins are configured via CORS_ORIGINS environment variable (REQUIRED)
+# Set CORS_ORIGINS in .env file with comma-separated list of allowed origins
+# Example: CORS_ORIGINS=http://localhost:3002,http://127.0.0.1:3002
+
+# Check if CORS_ORIGINS_REGEX is set (optional, for additional flexibility)
+import os
+cors_regex = os.getenv('CORS_ORIGINS_REGEX')
+
+# Configure CORS middleware
+cors_config = {
+    "allow_origins": CORS_ORIGINS,
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+
+# Add regex pattern if configured (optional)
+if cors_regex:
+    cors_config["allow_origin_regex"] = cors_regex
+    print(f"🔒 CORS regex pattern enabled: {cors_regex}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,  # Configured via CORS_ORIGINS env variable
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    **cors_config
 )
+
+# Log CORS configuration on startup
+print(f"🔒 CORS enabled for origins: {CORS_ORIGINS}")
+
+# Add middleware to log CORS requests for debugging
+@app.middleware("http")
+async def log_cors_requests(request, call_next):
+    import logging
+    origin = request.headers.get("origin")
+    if origin:
+        logging.info(f"🌐 Request from origin: {origin}")
+        print(f"🌐 Request from origin: {origin}")
+    response = await call_next(request)
+    # Log CORS headers in response
+    if origin:
+        cors_header = response.headers.get("access-control-allow-origin")
+        if cors_header:
+            logging.info(f"✅ CORS allowed for origin: {origin}")
+            print(f"✅ CORS allowed for origin: {origin}")
+    return response
 
 # Global variables for Parlant client and agent ID
 parlant_client = None
@@ -101,18 +169,29 @@ async def initialize_parlant():
     """Initialize Parlant client and load agent ID."""
     global parlant_client, agent_id
     
-    if parlant_client is None:
-        parlant_client = await create_parlant_client()
-    
-    if agent_id is None:
-        # parlant-data is now in backend/ directory
-        agent_id_path = pathlib.Path(__file__).parent / "parlant-data" / "agent_id.txt"
-        if not agent_id_path.exists():
-            raise RuntimeError("agent_id.txt not found. Please start parlant_agent_server.py first.")
-        with open(agent_id_path, "r", encoding="utf-8") as f:
-            agent_id = f.read().strip()
-    
-    return parlant_client, agent_id
+    try:
+        if parlant_client is None:
+            parlant_client = await create_parlant_client()
+        
+        if agent_id is None:
+            # parlant-data is now in parlant/ directory (root level)
+            parlant_dir = pathlib.Path(__file__).parent.parent / "parlant"
+            agent_id_path = parlant_dir / "parlant-data" / "agent_id.txt"
+            if not agent_id_path.exists():
+                import logging
+                logging.error(f"agent_id.txt not found at {agent_id_path}. Parlant server may not be running.")
+                raise RuntimeError("Parlant agent server is not initialized. Please start the Parlant agent server first.")
+            with open(agent_id_path, "r", encoding="utf-8") as f:
+                agent_id = f.read().strip()
+        
+        return parlant_client, agent_id
+    except Exception as e:
+        import logging
+        import traceback
+        logging.error(f"Failed to initialize Parlant: {type(e).__name__}: {str(e)}\n{traceback.format_exc()}")
+        print(f"❌ Failed to initialize Parlant: {type(e).__name__}: {str(e)}")
+        print(traceback.format_exc())
+        raise
 
 
 @app.post("/api/initialize", response_model=StandardResponse)
@@ -122,11 +201,12 @@ async def initialize_assistant():
         client, agent_id = await initialize_parlant()
         
         # Check if agent_id.txt exists (indicates initialization)
-        agent_id_path = pathlib.Path(__file__).parent / "parlant-data" / "agent_id.txt"
+        parlant_dir = pathlib.Path(__file__).parent.parent / "parlant"
+        agent_id_path = parlant_dir / "parlant-data" / "agent_id.txt"
         initialized = agent_id_path.exists() and agent_id is not None
         
         # Check for document processing (you can enhance this based on your actual document processing logic)
-        parlant_data_dir = pathlib.Path(__file__).parent / "parlant-data"
+        parlant_data_dir = parlant_dir / "parlant-data"
         document_processed = initialized  # Simplified - adjust based on your actual logic
         
         # Try to get current document name (if available)
@@ -144,12 +224,24 @@ async def initialize_assistant():
             }
         )
     except Exception as e:
-        error_msg = str(e)
-        print(f"Initialize error: {error_msg}")
+        import traceback
+        import logging
+        
+        # Log detailed error for debugging
+        error_details = {
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc()
+        }
+        logging.error(f"Failed to initialize assistant: {error_details}")
+        print(f"❌ Failed to initialize assistant: {error_details}")
+        print(traceback.format_exc())
+        
+        # Return friendly message to user
         return StandardResponse(
             status_code=500,
             status=False,
-            message=f"Failed to initialize assistant: {error_msg}",
+            message="Unable to initialize the assistant. Please ensure the Parlant agent server is running.",
             path="/api/initialize",
             data={
                 "initialized": False,
@@ -182,10 +274,21 @@ async def process_comparison(query: str) -> CompareData:
         )
     except Exception as e:
         import traceback
-        error_msg = f"Error processing comparison: {str(e)}"
-        print(error_msg)
+        import logging
+        
+        # Log detailed error for debugging
+        error_details = {
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc()
+        }
+        logging.error(f"Error processing comparison: {error_details}")
+        print(f"❌ Error processing comparison: {error_details}")
         print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=error_msg)
+        
+        # Return friendly message to user
+        friendly_message = "Unable to process your query at this time. Please try again or contact support if the issue persists."
+        raise HTTPException(status_code=500, detail=friendly_message)
 
 
 @app.post("/api/compare", response_model=StandardResponse)
@@ -198,7 +301,7 @@ async def compare_responses(request: CompareRequest):
             return StandardResponse(
                 status_code=400,
                 status=False,
-                message="Query is required",
+                message="Please enter a query to compare.",
                 path="/api/compare",
                 data={}
             )

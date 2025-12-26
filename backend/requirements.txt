@@ -1,14 +1,11 @@
-# Python dependencies for guidelines-vs-traditional-prompt
+# Python dependencies for FastAPI backend
 # Generated from pyproject.toml
 # 
 # Install with: pip install -r requirements.txt
 # Or use uv: uv pip install -r requirements.txt
 
-parlant>=3.0.2
-parlant-client>=3.0.1
-python-dotenv>=1.0.1
-rich>=13.9.4
-openai>=1.0.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
-
+python-dotenv>=1.0.1
+openai>=1.0.0
+rich>=13.9.4

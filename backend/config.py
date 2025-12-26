@@ -13,16 +13,24 @@ FRONTEND_PORT = os.getenv('FRONTEND_PORT', '3300')
 FRONTEND_URL = os.getenv('FRONTEND_URL', f'http://localhost:{FRONTEND_PORT}')
 
 # CORS Configuration
-# Comma-separated list of allowed origins (e.g., "http://localhost:3300,https://example.com")
-# If CORS_ORIGINS is not set, defaults to FRONTEND_URL
-# Use "*" for development only (not recommended for production)
+# Comma-separated list of allowed origins (REQUIRED)
+# Must be set in .env file - no defaults
+# Examples:
+#   Development: CORS_ORIGINS=http://localhost:3002,http://127.0.0.1:3002
+#   Production: CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 CORS_ORIGINS_ENV = os.getenv('CORS_ORIGINS')
-if CORS_ORIGINS_ENV:
-    # Split by comma and strip whitespace
-    CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_ENV.split(',') if origin.strip()]
-else:
-    # Default to FRONTEND_URL for development
-    CORS_ORIGINS = [FRONTEND_URL]
+if not CORS_ORIGINS_ENV:
+    raise ValueError(
+        "CORS_ORIGINS environment variable is required. "
+        "Please set it in your .env file. "
+        "Example: CORS_ORIGINS=http://localhost:3002,http://127.0.0.1:3002"
+    )
+
+# Split by comma and strip whitespace
+CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_ENV.split(',') if origin.strip()]
+
+if not CORS_ORIGINS:
+    raise ValueError("CORS_ORIGINS must contain at least one valid origin URL")
 
 # Parlant Configuration
 PARLANT_BASE_URL = os.getenv('PARLANT_BASE_URL')

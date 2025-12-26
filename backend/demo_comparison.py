@@ -2,6 +2,13 @@
 import asyncio
 from rich_table_formatter import print_comparison_rich
 from traditional_llm_prompt import call_traditional_llm as traditional_call, TRADITIONAL_HUGE_PROMPT
+import sys
+import pathlib
+
+# Add parlant directory to path to import parlant_client_utils
+parlant_dir = pathlib.Path(__file__).parent.parent / "parlant"
+sys.path.insert(0, str(parlant_dir))
+
 from parlant_client_utils import (
     create_client as create_parlant_client,
     create_session as create_parlant_session,
@@ -17,11 +24,11 @@ async def main() -> None:
     demo_queries = DEMO_QUERIES
 
     import os
-    import pathlib
-    # parlant-data is now in backend/ directory
-    agent_id_path = pathlib.Path(__file__).parent / "parlant-data" / "agent_id.txt"
+    # parlant-data is now in parlant/ directory (root level)
+    parlant_dir = pathlib.Path(__file__).parent.parent / "parlant"
+    agent_id_path = parlant_dir / "parlant-data" / "agent_id.txt"
     if not agent_id_path.exists():
-        raise RuntimeError("agent_id.txt not found. Please start parlant_agent_server.py first.")
+        raise RuntimeError("agent_id.txt not found. Please start parlant/parlant_agent_server.py first.")
     with open(agent_id_path, "r", encoding="utf-8") as f:
         agent_id = f.read().strip()
 

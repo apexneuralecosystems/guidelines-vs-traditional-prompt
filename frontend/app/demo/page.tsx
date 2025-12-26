@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Footer from '../components/Footer';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : '/api';
 
@@ -24,6 +25,13 @@ export default function DemoPage() {
     checkHealth();
   }, []);
 
+  // Clear "Please enter a query" error when query becomes non-empty
+  useEffect(() => {
+    if (query.trim() && error && (error.includes('Please enter a query') || error.includes('enter a query'))) {
+      setError(null);
+    }
+  }, [query, error]);
+
   async function checkHealth() {
     try {
       const response = await fetch(`${API_BASE_URL}/health`);
@@ -32,17 +40,25 @@ export default function DemoPage() {
       // Handle new standard response format
       if (result.status_code && result.data) {
         if (!result.status || !result.data.parlant_ready) {
-          setError('⚠️ Backend not ready. Please make sure parlant_agent_server.py is running.');
+          setError('⚠️ Backend not ready. Please make sure the Parlant agent server is running.');
         }
       } else {
         // Fallback for old format
         if (!result.parlant_ready) {
-          setError('⚠️ Backend not ready. Please make sure parlant_agent_server.py is running.');
+          setError('⚠️ Backend not ready. Please make sure the Parlant agent server is running.');
         }
       }
-    } catch (err) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'API server';
-      setError(`⚠️ Cannot connect to API server at ${apiUrl}. Make sure api_server.py is running and NEXT_PUBLIC_API_URL is configured correctly.`);
+    } catch (err: any) {
+      // Log detailed error for debugging
+      console.error('Health check failed:', {
+        error: err,
+        message: err.message,
+        stack: err.stack,
+        apiUrl: API_BASE_URL
+      });
+      
+      // Show friendly message to user
+      setError('⚠️ Unable to connect to the backend server. Please ensure all services are running.');
     }
   }
 
@@ -72,19 +88,33 @@ export default function DemoPage() {
       // Handle new standard response format
       if (result.status_code && result.data) {
         if (!result.status || result.status_code >= 400) {
-          throw new Error(result.message || 'Failed to get comparison');
+          // Log detailed error
+          console.error('Comparison API error:', {
+            status_code: result.status_code,
+            message: result.message,
+            path: result.path,
+            fullResponse: result
+          });
+          
+          // Show friendly message
+          const friendlyMessage = getFriendlyErrorMessage(result.message || 'Failed to process comparison');
+          throw new Error(friendlyMessage);
         }
         // Extract data from the standard response format
         setResults(result.data);
       } else if (!response.ok) {
-        // Fallback for old format or error responses
-        let errorMessage = 'Failed to get comparison';
-        if (result.message) {
-          errorMessage = result.message;
-        } else if (result.error) {
-          errorMessage = result.error;
-        }
-        throw new Error(errorMessage);
+        // Log detailed error
+        console.error('Comparison API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          result: result
+        });
+        
+        // Show friendly message
+        const friendlyMessage = getFriendlyErrorMessage(
+          result.message || result.error || 'Failed to process comparison'
+        );
+        throw new Error(friendlyMessage);
       } else {
         // Old format fallback
         setResults(result);
@@ -99,9 +129,17 @@ export default function DemoPage() {
       }, 100);
       
     } catch (err: any) {
-      const errorMessage = err.message || 'An unexpected error occurred';
-      setError(`Error: ${errorMessage}`);
-      console.error('Comparison error:', err);
+      // Log detailed error for debugging
+      console.error('Comparison error:', {
+        error: err,
+        message: err.message,
+        stack: err.stack,
+        query: queryText
+      });
+      
+      // Show friendly message to user
+      const friendlyMessage = getFriendlyErrorMessage(err.message || 'An unexpected error occurred');
+      setError(friendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -120,20 +158,79 @@ export default function DemoPage() {
       // Handle new standard response format
       if (result.status_code && result.data) {
         if (!result.status || result.status_code >= 400) {
-          throw new Error(result.message || 'Failed to load demo queries');
+          // Log detailed error
+          console.error('Demo queries API error:', {
+            status_code: result.status_code,
+            message: result.message,
+            fullResponse: result
+          });
+          
+          throw new Error('Unable to load demo queries. Please try again later.');
         }
         setDemoQueries(result.data.queries || []);
       } else if (!response.ok) {
-        throw new Error(`Failed to load demo queries: ${response.status} ${response.statusText}`);
+        // Log detailed error
+        console.error('Demo queries API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          result: result
+        });
+        
+        throw new Error('Unable to load demo queries. Please try again later.');
       } else {
         // Fallback for old format
         setDemoQueries(result.queries || []);
       }
       setShowDemoQueries(true);
     } catch (err: any) {
-      setError(`Error loading demo queries: ${err.message}`);
-      console.error('Demo queries error:', err);
+      // Log detailed error for debugging
+      console.error('Demo queries error:', {
+        error: err,
+        message: err.message,
+        stack: err.stack
+      });
+      
+      // Show friendly message to user
+      setError('Unable to load demo queries. Please try again later.');
     }
+  }
+
+  // Helper function to convert technical errors to friendly messages
+  function getFriendlyErrorMessage(technicalMessage: string): string {
+    const lowerMessage = technicalMessage.toLowerCase();
+    
+    // Connection errors
+    if (lowerMessage.includes('network') || lowerMessage.includes('fetch') || lowerMessage.includes('connection')) {
+      return 'Unable to connect to the server. Please check your internet connection and ensure all services are running.';
+    }
+    
+    // Server errors
+    if (lowerMessage.includes('500') || lowerMessage.includes('internal server')) {
+      return 'The server encountered an error while processing your request. Please try again in a moment.';
+    }
+    
+    // Not found errors
+    if (lowerMessage.includes('404') || lowerMessage.includes('not found')) {
+      return 'The requested service is not available. Please ensure all services are running.';
+    }
+    
+    // Timeout errors
+    if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
+      return 'The request took too long to process. Please try again with a simpler query.';
+    }
+    
+    // Parlant/agent errors
+    if (lowerMessage.includes('parlant') || lowerMessage.includes('agent') || lowerMessage.includes('session')) {
+      return 'The AI agent is not responding. Please ensure the Parlant agent server is running and try again.';
+    }
+    
+    // API key errors
+    if (lowerMessage.includes('api key') || lowerMessage.includes('authentication') || lowerMessage.includes('unauthorized')) {
+      return 'Authentication failed. Please check your API configuration.';
+    }
+    
+    // Generic error
+    return 'Something went wrong while processing your request. Please try again.';
   }
 
   function handleQueryClick(selectedQuery: string) {
@@ -157,11 +254,11 @@ export default function DemoPage() {
     let formatted = reasoning;
     formatted = formatted.replace(
       /Guidelines:/g,
-      '<strong style="color: #10b981;">📋 Guidelines:</strong>'
+      '<strong style="color: #8BAE66;">📋 Guidelines:</strong>'
     );
     formatted = formatted.replace(
       /Tools:/g,
-      '<strong style="color: #6366f1;">🔧 Tools:</strong>'
+      '<strong style="color: #628141;">🔧 Tools:</strong>'
     );
     formatted = formatted.replace(/\s*\|\s*/g, '<br><br>');
     
@@ -182,7 +279,13 @@ export default function DemoPage() {
           <textarea
             id="query-input"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              // Clear error when user starts typing (especially if it's the "Please enter a query" error)
+              if (error && (error.includes('Please enter a query') || error.includes('enter a query'))) {
+                setError(null);
+              }
+            }}
             onKeyDown={(e) => {
               if (e.ctrlKey && e.key === 'Enter') {
                 handleCompare();
@@ -289,6 +392,7 @@ export default function DemoPage() {
           </div>
         </div>
       )}
+      <Footer />
     </div>
   );
 }

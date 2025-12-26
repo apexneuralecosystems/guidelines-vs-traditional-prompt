@@ -18,7 +18,7 @@ if ($parlant) {
     }
 } else {
     Write-Host "   ❌ Port 8800 is NOT listening" -ForegroundColor Red
-    Write-Host "   → Start: cd backend; uv run parlant_agent_server.py" -ForegroundColor Gray
+    Write-Host "   → Start: cd parlant; uv run parlant_agent_server.py" -ForegroundColor Gray
 }
 Write-Host ""
 
@@ -63,7 +63,7 @@ Write-Host ""
 
 # Check agent_id.txt
 Write-Host "4. Parlant Agent ID:" -ForegroundColor Yellow
-$agentIdPath = "backend/parlant-data/agent_id.txt"
+$agentIdPath = "parlant/parlant-data/agent_id.txt"
 if (Test-Path $agentIdPath) {
     $agentId = Get-Content $agentIdPath -Raw
     Write-Host "   ✅ agent_id.txt exists" -ForegroundColor Green

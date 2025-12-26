@@ -6,6 +6,26 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Configure OpenAI SDK to use OpenRouter
+# The OpenAI SDK (used internally by Parlant) respects OPENAI_BASE_URL and OPENAI_API_KEY environment variables
+# Support both OPENROUTER_API_KEY and OPENAI_API_KEY for flexibility
+
+# Check for OpenRouter API key first (preferred if using OpenRouter)
+openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+if openrouter_api_key:
+    # Use OpenRouter
+    os.environ["OPENAI_API_KEY"] = openrouter_api_key
+    os.environ["OPENAI_BASE_URL"] = os.getenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+    print("✅ Using OpenRouter API (via OPENROUTER_API_KEY)")
+elif os.getenv("OPENAI_API_KEY"):
+    # Use OpenAI directly or custom base URL if set
+    if os.getenv("OPENAI_BASE_URL"):
+        print(f"✅ Using custom OpenAI endpoint: {os.getenv('OPENAI_BASE_URL')}")
+    else:
+        print("✅ Using OpenAI API directly")
+else:
+    print("⚠️  Warning: No OPENAI_API_KEY or OPENROUTER_API_KEY found in environment")
+
 # Life Insurance Agent - Parlant's structured approach vs traditional prompts
 
 @p.tool
@@ -222,7 +242,7 @@ async def main() -> None:
         )
 
         # Save agent ID for demo client
-        # parlant-data is now in backend/ directory
+        # parlant-data is now in parlant/ directory
         parlant_data_dir = pathlib.Path(__file__).parent / "parlant-data"
         os.makedirs(parlant_data_dir, exist_ok=True)
         agent_id_file = parlant_data_dir / "agent_id.txt"
@@ -232,3 +252,4 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
+

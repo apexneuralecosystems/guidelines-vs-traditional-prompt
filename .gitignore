@@ -36,6 +36,7 @@ venv.bak/
 
 # Parlant data and cache
 parlant-data/
+parlant/parlant-data/
 *.log
 *.cache
 
@@ -80,6 +81,11 @@ dmypy.json
 
 # uv
 .uv/
+
+# PM2 logs
+logs/
+*.log
+pm2.log
 
 # Node.js (frontend)
 # Note: node_modules is already in frontend/.gitignore

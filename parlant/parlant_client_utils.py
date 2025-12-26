@@ -189,6 +189,3 @@ async def get_session_reasoning(client: AsyncParlantClient, session_id: str, min
     
     return " | ".join(parts) if parts else "(no explicit tools/guidelines recorded)"
 
-
-
-
