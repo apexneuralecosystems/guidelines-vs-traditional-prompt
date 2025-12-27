@@ -7,11 +7,13 @@ RUN pip install uv
 
 # Copy dependency files
 COPY pyproject.toml .
-COPY uv.lock .
 COPY requirements.txt .
 
+# Copy lock file if it exists
+COPY uv.lock* .
+
 # Install dependencies
-RUN uv sync --frozen
+RUN uv sync --frozen || uv pip install -r requirements.txt
 
 # Copy application code
 COPY . .
