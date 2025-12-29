@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ["python311"]
-
-[phases.install]
-cmds = ["pip install uv", "uv sync"]
-
-[start]
-cmd = "uv run parlant_agent_server.py"
